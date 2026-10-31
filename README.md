@@ -40,6 +40,3 @@ python app.py
 | `samples/Fake`, `samples/Real` | Example images with known labels |
 | `Dockerfile`, `requirements.txt` | Environment setup |
 
-The true label shown under the verdict is read from the file name (it must
-contain "real" or "fake") and is only for comparison. The verdict always comes
-from the models.

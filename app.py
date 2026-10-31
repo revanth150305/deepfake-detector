@@ -362,29 +362,7 @@ def draw_landmarks(image_rgb, result):
     return vis
 
 
-def label_from_name(path):
-    """Ground-truth label from the file name, e.g. 'Fake_image1.jpg' -> 'FAKE'.
-    Shown next to the model's verdict for comparison only - never used to predict."""
-    name = Path(path).name.lower()
-    if "fake" in name:
-        return "FAKE"
-    if "real" in name:
-        return "REAL"
-    return None
-
-
-def ground_truth_html(true_label, predicted_real):
-    if true_label is None:
-        return ("<div style='margin-top:12px;font-size:13px;opacity:.65'>"
-                "True label: unknown (file name has no 'real' / 'fake')</div>")
-    correct = (true_label == "REAL") == predicted_real
-    mark, color = ("&#10003; Model is correct", "#16a34a") if correct else ("&#10007; Model is wrong", "#dc2626")
-    return (f"<div style='margin-top:12px;padding-top:10px;border-top:1px solid rgba(127,127,127,.3);font-size:15px'>"
-            f"True label (from file name): <b>{true_label}</b>"
-            f"&nbsp;&nbsp;<b style='color:{color}'>{mark}</b></div>")
-
-
-def verdict_html(score, threshold, face_found, true_label=None):
+def verdict_html(score, threshold, face_found):
     real = score >= threshold
     color = "#16a34a" if real else "#dc2626"
     label = "REAL" if real else "FAKE / AI-GENERATED"
@@ -392,7 +370,6 @@ def verdict_html(score, threshold, face_found, true_label=None):
         "<div style='margin-top:8px;font-size:13px;color:#b45309'>"
         "No face detected. The geometry branch fell back to a neutral 0.5, "
         "and illumination used a centre crop.</div>")
-    note += ground_truth_html(true_label, real)
     return f"""
 <div style="border:2px solid {color};border-radius:12px;padding:18px 20px;">
   <div style="font-size:13px;letter-spacing:.08em;opacity:.7">MODEL VERDICT</div>
@@ -432,7 +409,6 @@ def build_app(detector):
     def analyze(image_path, threshold):
         if not image_path:
             raise gr.Error("Upload an image first.")
-        true_label = label_from_name(image_path)
         image_bgr = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
         if image_bgr is None:
             raise gr.Error("Could not read that image.")
@@ -443,7 +419,7 @@ def build_app(detector):
             "Geometry": result["geometry"],
             "Illumination": result["illumination"],
         }
-        return (verdict_html(result["reality_score"], threshold, result["face_found"], true_label),
+        return (verdict_html(result["reality_score"], threshold, result["face_found"]),
                 branch_scores,
                 draw_landmarks(image, result),
                 breakdown_md(result, weights))
