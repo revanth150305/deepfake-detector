@@ -1,0 +1,7 @@
+.venv/
+studio_src/
+__pycache__/
+*.pyc
+*.pdf
+.gradio/
+.git/
